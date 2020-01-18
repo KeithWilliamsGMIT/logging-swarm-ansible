@@ -1,0 +1,14 @@
+---
+- name: Create directories for filebeat
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - '{{ volume_directory }}/logging/filebeat/data'
+
+- name: Write out filebeat.yml file
+  template:
+    src: filebeat/filebeat.yml.j2
+    dest: '{{ volume_directory }}/logging/filebeat/filebeat.yml'

@@ -1,0 +1,50 @@
+filebeat.modules:
+- module: system
+  syslog:
+    enabled: true
+  auth:
+    enabled: true
+
+filebeat.inputs:
+- type: docker
+  enabled: true
+  containers:
+    stream: all
+    ids:
+      - '*'
+
+#========================== Filebeat autodiscover ==============================
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+#================================ Processors ===================================
+processors:
+- add_cloud_metadata: ~
+- add_docker_metadata: ~
+- add_locale:
+    format: offset
+- add_host_metadata:
+    netinfo.enabled: true
+
+#========================== Elasticsearch output ===============================
+output.elasticsearch:
+  hosts: ["${ELASTICSEARCH_HOST}:9200"]
+  username: {{ elasticsearch_username }}
+  password: {{ elasticsearch_password }}
+
+#============================== Dashboards =====================================
+setup.dashboards:
+  enabled: true
+
+#============================== Kibana =========================================
+setup.kibana:
+  host: "${KIBANA_HOST}:5601"
+  username: {{ elasticsearch_username }}
+  password: {{ elasticsearch_password }}
+
+#============================== Xpack Monitoring ===============================
+xpack.monitoring:
+  enabled: true
+elasticsearch:

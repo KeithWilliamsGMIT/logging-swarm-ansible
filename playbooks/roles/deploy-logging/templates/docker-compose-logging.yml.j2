@@ -1,0 +1,76 @@
+version: '3.6'
+services:
+  elasticsearch:
+    image: "docker.elastic.co/elasticsearch/elasticsearch:{{ elastic_version }}"
+    environment:
+      - ELASTIC_PASSWORD={{ elasticsearch_password }}
+      - cluster.name=DockerSwarmLogging
+      - discovery.zen.minimum_master_nodes=1
+      - discovery.zen.ping.unicast.hosts=elasticsearch
+      - network.host=0.0.0.0
+      - node.name=elasticsearch
+      - xpack.license.self_generated.type=trial
+      - xpack.monitoring.collection.enabled=true
+      - xpack.security.enabled=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - "{{ volume_directory }}/logging/elasticsearch/data:/usr/share/elasticsearch/data"
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - {{ docker_network_name }}
+
+  kibana:
+    image: "docker.elastic.co/kibana/kibana:{{ elastic_version }}"
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME={{ elasticsearch_username }}
+      - ELASTICSEARCH_PASSWORD={{ elasticsearch_password }}
+      - SERVER_NAME="kibana"
+    deploy:
+      labels:
+        - "traefik.port=5601"
+        - "traefik.backend=kibana"
+        - "traefik.frontend.rule=Host:kibana.logging.{{ domain_name }}"
+        - "traefik.docker.network={{ docker_network_name }}"
+      mode: replicated
+      replicas: 1
+    networks:
+      - {{ docker_network_name }}
+
+  filebeat:
+    image: "docker.elastic.co/beats/filebeat:{{ elastic_version }}"
+    user: root
+    volumes:
+      - "{{ volume_directory }}/logging/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml"
+      - "{{ volume_directory }}/logging/filebeat/data:/usr/share/filebeat/data/"
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log/:/var/log/:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers/:ro
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOST=elasticsearch
+      - KIBANA_HOST=kibana
+    command: ["--strict.perms=false"]
+    deploy:
+      mode: global
+    networks:
+      - {{ docker_network_name }}
+
+networks:
+  {{ docker_network_name }}:
+    external: true
+    name: {{ docker_network_name }}

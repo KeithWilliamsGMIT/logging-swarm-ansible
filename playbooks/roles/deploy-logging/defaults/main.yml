@@ -1,0 +1,15 @@
+# Directories
+temporary_directory: "/tmp"
+volume_directory: "/tmp"
+
+# Domain
+domain_name: example.local
+
+# Docker
+docker_network_name: "logging_network"
+
+# Docker image versions
+elastic_version: 6.5.0
+
+# Elasticsearch configuration
+elasticsearch_username: elastic
