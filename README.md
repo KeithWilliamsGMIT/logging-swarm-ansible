@@ -71,6 +71,16 @@ There are also a number of Ansible variables that can be overridden. These can b
 | elasticsearch_username | The username of the user to log into Elasticsearch | admin |
 | domain_name | The domain name used to access the services | example.local |
 
+## Using this role
+
+To use this role add the following to your `requirements.yml` file:
+
+```
+- src: https://github.com/KeithWilliamsGMIT/logging-swarm-ansible.git
+  version: master
+  name: deploy-logging
+```
+
 ## Contributing
 
 Any contribution to this repository is appreciated, whether it is a pull request, bug report, feature request, feedback or even starring the repository. Some potential areas that need further refinement are:
